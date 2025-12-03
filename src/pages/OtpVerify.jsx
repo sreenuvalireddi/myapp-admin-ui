@@ -31,8 +31,13 @@ export default function OtpVerify() {
     setError('')
     if (!otp || !/^[0-9]{4,6}$/.test(otp)) return setError('Enter the 4–6 digit OTP')
 
-    // Demo: accept any 4-6 digit OTP and navigate to home
-    alert('OTP verified (demo)')
+    // Demo: validate against hardcoded OTP value '123456'
+    const FIXED_OTP = '123456'
+    if (otp !== FIXED_OTP) {
+      return setError('Incorrect OTP')
+    }
+
+    // OTP matched — proceed to home
     try { sessionStorage.removeItem('registration') } catch (e) {}
     navigate('/home')
   }
