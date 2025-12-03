@@ -1,5 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useDispatch } from 'react-redux'
+import { registerUser } from '../store'
 
 function isEmail(s) {
   return /\S+@\S+\.\S+/.test(s)
@@ -18,6 +20,7 @@ export default function Register() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
   const navigate = useNavigate()
+  const dispatch = useDispatch()
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -32,15 +35,15 @@ export default function Register() {
     if (!confirmPassword) return setError('Please confirm your password')
     if (password !== confirmPassword) return setError('Passwords do not match')
 
-    // Demo behavior: save registration data to session (for demo) and navigate to OTP verification
-    const registration = { firstName, lastName, phone, email }
+    // Save registration to redux store and navigate to OTP verification
+    const registration = { firstName, lastName, phone, email, password }
     try {
-      sessionStorage.setItem('registration', JSON.stringify(registration))
+      dispatch(registerUser(registration))
     } catch (e) {
-      console.warn('sessionStorage unavailable', e)
+      console.warn('redux dispatch failed', e)
     }
-    console.log('Demo registration', registration)
-    navigate('/verify-otp', { state: registration })
+    console.log('Demo registration (saved to redux)', registration)
+    navigate('/verify-otp', { state: { firstName, lastName, phone, email } })
   }
 
   return (

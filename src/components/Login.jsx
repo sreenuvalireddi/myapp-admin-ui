@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { useSelector } from 'react-redux'
 
 function isEmail(s) {
   return /\S+@\S+\.\S+/.test(s)
@@ -15,6 +16,7 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const navigate = useNavigate()
+  const users = useSelector((state) => state.auth.users)
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -23,8 +25,12 @@ export default function Login() {
     if (!password) return setError('Please enter a password')
     if (!isEmail(identifier) && !isPhone(identifier)) return setError('Enter a valid email or phone number')
 
-    // Demo submit handler: navigate to home
-    console.log('Demo login', { identifier, password })
+    // Lookup user in redux store
+    const found = users.find(
+      (u) => (u.email === identifier || u.phone === identifier) && u.password === password
+    )
+    if (!found) return setError('Invalid credentials')
+    console.log('User authenticated', found)
     navigate('/home')
   }
 
