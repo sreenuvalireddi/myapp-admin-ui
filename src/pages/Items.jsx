@@ -5,6 +5,7 @@ import { useShops } from '../context/ShopsContext'
 
 export default function Items() {
   const { currentShop, cartItems, setCartItems } = useShops()
+  const [itemQuantities, setItemQuantities] = useState({})
   const masterItems = [
     { itemId: 1, itemName: 'Apples', itemCategory: 'Fruits', price: 3.99, quantity: 10, image: 'https://images.unsplash.com/photo-1560806887-1295a3f48caf?w=300&q=80' },
     { itemId: 2, itemName: 'Bananas', itemCategory: 'Fruits', price: 2.49, quantity: 15, image: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=300&q=80' },
@@ -78,25 +79,106 @@ export default function Items() {
                 <span>Price: ${item.price.toFixed(2)}</span>
                 <span>Qty: {item.quantity}</span>
               </div>
-              <button
-                onClick={() => {
-                  setCartItems((s) => [...s, item])
-                }}
-                style={{
+              {itemQuantities[item.itemId] ? (
+                <div style={{
                   marginTop: 8,
-                  padding: '6px 12px',
-                  background: '#2563eb',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontSize: '13px',
-                  fontWeight: '500',
-                  width: '100%',
-                }}
-              >
-                Add to Cart
-              </button>
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  padding: '6px',
+                  background: '#f3f4f6',
+                  borderRadius: '4px'
+                }}>
+                  <button
+                    onClick={() => {
+                      const newQty = itemQuantities[item.itemId] - 1
+                      if (newQty === 0) {
+                        const newQuantities = { ...itemQuantities }
+                        delete newQuantities[item.itemId]
+                        setItemQuantities(newQuantities)
+                        setCartItems((s) => s.filter(cartItem => cartItem.itemId !== item.itemId))
+                      } else {
+                        setItemQuantities((prev) => ({ ...prev, [item.itemId]: newQty }))
+                        setCartItems((s) => s.map(cartItem => 
+                          cartItem.itemId === item.itemId 
+                            ? { ...cartItem, cartQuantity: newQty }
+                            : cartItem
+                        ))
+                      }
+                    }}
+                    style={{
+                      padding: '4px 8px',
+                      background: '#ef4444',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      fontWeight: 'bold',
+                      width: '32px',
+                      height: '32px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    −
+                  </button>
+                  <span style={{ fontSize: '16px', fontWeight: 'bold', minWidth: '30px', textAlign: 'center' }}>
+                    {itemQuantities[item.itemId]}
+                  </span>
+                  <button
+                    onClick={() => {
+                      const newQty = (itemQuantities[item.itemId] || 0) + 1
+                      setItemQuantities((prev) => ({ ...prev, [item.itemId]: newQty }))
+                      setCartItems((s) => s.map(cartItem => 
+                        cartItem.itemId === item.itemId 
+                          ? { ...cartItem, cartQuantity: newQty }
+                          : cartItem
+                      ))
+                    }}
+                    style={{
+                      padding: '4px 8px',
+                      background: '#10b981',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      fontWeight: 'bold',
+                      width: '32px',
+                      height: '32px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    +
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => {
+                    setItemQuantities((prev) => ({ ...prev, [item.itemId]: 1 }))
+                    setCartItems((s) => [...s, { ...item, cartQuantity: 1 }])
+                  }}
+                  style={{
+                    marginTop: 8,
+                    padding: '6px 12px',
+                    background: '#2563eb',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontSize: '13px',
+                    fontWeight: '500',
+                    width: '100%',
+                  }}
+                >
+                  Add to Cart
+                </button>
+              )}
             </div>
           ))}
         </section>

@@ -1,11 +1,12 @@
 import React, { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import { useShops } from '../context/ShopsContext'
 
 export default function Home() {
   const { setCurrentShop } = useShops()
+  const navigate = useNavigate()
   const masterShops = [
     { shopId: 1, shopName: 'Fresh Mart', shopLocation: '123 Main St, Downtown' },
     { shopId: 2, shopName: 'QuickStop', shopLocation: '456 Oak Ave, Midtown' },
@@ -67,11 +68,26 @@ export default function Home() {
             >
               <strong>{shop.shopName}</strong>
               <div style={{ marginTop: 8, fontSize: '14px', color: '#6b7280' }}>{shop.shopLocation}</div>
-              <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
-                <small style={{ color: '#2563eb' }}>Click to select</small>
-                <Link to="/items" onClick={() => setCurrentShop(shop)} style={{ color: '#2563eb', textDecoration: 'underline', fontSize: '12px' }}>
+              <div style={{ marginTop: 8 }}>
+                <button
+                  onClick={(e) => {
+                    // prevent card onClick from also firing
+                    e.stopPropagation()
+                    setCurrentShop(shop)
+                    navigate('/items')
+                  }}
+                  style={{
+                    padding: '6px 10px',
+                    background: '#2563eb',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontSize: '13px'
+                  }}
+                >
                   View items
-                </Link>
+                </button>
               </div>
             </div>
           ))}

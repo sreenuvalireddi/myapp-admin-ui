@@ -7,7 +7,7 @@ import { useShops } from '../context/ShopsContext'
 export default function Cart() {
   const { cartItems, setCartItems } = useShops()
 
-  const totalPrice = cartItems.reduce((sum, item) => sum + item.price, 0)
+  const totalPrice = cartItems.reduce((sum, item) => sum + (item.price * (item.cartQuantity || 1)), 0)
 
   return (
     <div className="home-root">
@@ -43,25 +43,84 @@ export default function Cart() {
                   <div style={{ marginTop: 8, fontSize: '14px', color: '#6b7280' }}>{item.itemCategory}</div>
                   <div style={{ marginTop: 8, display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
                     <span>Price: ${item.price.toFixed(2)}</span>
-                    <span>Available Qty: {item.quantity}</span>
+                    <span>Selected Qty: {item.cartQuantity || 1}</span>
                   </div>
-                  <button
-                    onClick={() => setCartItems((s) => s.filter((_, i) => i !== index))}
-                    style={{
-                      marginTop: 8,
-                      padding: '6px 12px',
-                      background: '#ef4444',
-                      color: '#fff',
-                      border: 'none',
-                      borderRadius: '4px',
-                      cursor: 'pointer',
-                      fontSize: '13px',
-                      fontWeight: '500',
-                      width: '100%',
-                    }}
-                  >
-                    Remove from Cart
-                  </button>
+                  <div style={{ marginTop: 4, display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: '600', color: '#1f2937' }}>
+                    <span>Subtotal: ${(item.price * (item.cartQuantity || 1)).toFixed(2)}</span>
+                  </div>
+                  <div style={{ marginTop: 4, fontSize: '12px', color: '#9ca3af' }}>
+                    Available: {item.quantity}
+                  </div>
+                  <div style={{
+                    marginTop: 12,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    padding: '8px',
+                    background: '#f3f4f6',
+                    borderRadius: '4px'
+                  }}>
+                    <button
+                      onClick={() => {
+                        if ((item.cartQuantity || 1) === 1) {
+                          setCartItems((s) => s.filter((_, i) => i !== index))
+                        } else {
+                          setCartItems((s) => s.map((cartItem, i) => 
+                            i === index 
+                              ? { ...cartItem, cartQuantity: (cartItem.cartQuantity || 1) - 1 }
+                              : cartItem
+                          ))
+                        }
+                      }}
+                      style={{
+                        padding: '4px 8px',
+                        background: '#ef4444',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        fontWeight: 'bold',
+                        width: '32px',
+                        height: '32px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      −
+                    </button>
+                    <span style={{ fontSize: '16px', fontWeight: 'bold', minWidth: '40px', textAlign: 'center' }}>
+                      {item.cartQuantity || 1}
+                    </span>
+                    <button
+                      onClick={() => {
+                        setCartItems((s) => s.map((cartItem, i) => 
+                          i === index 
+                            ? { ...cartItem, cartQuantity: (cartItem.cartQuantity || 1) + 1 }
+                            : cartItem
+                        ))
+                      }}
+                      style={{
+                        padding: '4px 8px',
+                        background: '#10b981',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        fontWeight: 'bold',
+                        width: '32px',
+                        height: '32px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      +
+                    </button>
+                  </div>
                 </div>
               ))}
 
