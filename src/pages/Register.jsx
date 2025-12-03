@@ -3,10 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
 import { registerUser } from '../store'
 
-function isEmail(s) {
-  return /\S+@\S+\.\S+/.test(s)
-}
-
 function isPhone(s) {
   return /^\+?[0-9]{7,15}$/.test(s)
 }
@@ -16,34 +12,33 @@ export default function Register() {
   const [lastName, setLastName] = useState('')
   const [phone, setPhone] = useState('')
   const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
+  // captcha
+  const rand = () => Math.floor(Math.random() * 9) + 1
+  const [captcha, setCaptcha] = useState({ a: rand(), b: rand() })
+  const [captchaInput, setCaptchaInput] = useState('')
+  const captchaSum = Number(captcha.a) + Number(captcha.b)
+  const captchaNumber = captchaInput === '' ? NaN : Number(captchaInput)
+  const captchaValid = Number.isFinite(captchaNumber) && captchaNumber === captchaSum
   const [error, setError] = useState('')
   const navigate = useNavigate()
   const dispatch = useDispatch()
 
   const handleSubmit = (e) => {
-    e.preventDefault()
+    e && e.preventDefault()
     setError('')
     if (!firstName.trim()) return setError('Please enter first name')
     if (!lastName.trim()) return setError('Please enter last name')
     if (!phone.trim()) return setError('Please enter phone number')
     if (!isPhone(phone)) return setError('Enter a valid phone number')
     if (!email.trim()) return setError('Please enter email')
-    if (!isEmail(email)) return setError('Enter a valid email')
-    if (!password || password.length < 6) return setError('Password must be at least 6 characters')
-    if (!confirmPassword) return setError('Please confirm your password')
-    if (password !== confirmPassword) return setError('Passwords do not match')
+    // minimal email check
+    if (!/\S+@\S+\.\S+/.test(email)) return setError('Enter a valid email')
+    if (!captchaValid) return setError('Captcha incorrect')
 
-    // Save registration to redux store and navigate to OTP verification
-    const registration = { firstName, lastName, phone, email, password }
-    try {
-      dispatch(registerUser(registration))
-    } catch (e) {
-      console.warn('redux dispatch failed', e)
-    }
-    console.log('Demo registration (saved to redux)', registration)
-    navigate('/verify-otp', { state: { firstName, lastName, phone, email } })
+    // Save registration to redux store and navigate to OTP verification page (OTP handled separately)
+    const registration = { firstName, lastName, phone, email }
+    try { dispatch(registerUser(registration)) } catch (e) {}
+    navigate('/verify-otp', { state: registration })
   }
 
   return (
@@ -69,15 +64,18 @@ export default function Register() {
         <label htmlFor="email">Email</label>
         <input id="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
 
-        <label htmlFor="password">Password</label>
-        <input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Create a password" autoComplete="new-password" />
-
-        <label htmlFor="confirmPassword">Confirm password</label>
-        <input id="confirmPassword" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Repeat your password" autoComplete="new-password" />
+        <div style={{height:8}} />
+        <label htmlFor="captcha">Captcha: What is {captcha.a} + {captcha.b} ?</label>
+        <div style={{display:'flex',gap:8,alignItems:'center',marginTop:6}}>
+          <input id="captcha" value={captchaInput} onChange={(e) => setCaptchaInput(e.target.value.replace(/[^0-9]/g, ''))} placeholder="Answer" style={{width:100}} />
+          <button type="button" onClick={() => { setCaptcha({ a: rand(), b: rand() }); setCaptchaInput(''); setError('') }} className="btn" style={{background:'#6b7280'}}>Refresh</button>
+        </div>
+        {captchaInput !== '' && !captchaValid && <div className="error" style={{marginTop:8}}>Captcha incorrect</div>}
 
         {error && <div className="error">{error}</div>}
 
-        <button type="submit" className="btn">Create account</button>
+        <div style={{height:8}} />
+        <button type="submit" className="btn" disabled={!captchaValid}>Create account</button>
 
         <p className="note">By creating an account you agree to the demo terms.</p>
       </form>
