@@ -1,37 +1,45 @@
-import React, { useMemo, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import React, { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import { useShops } from '../context/ShopsContext'
+import { fetchShops } from '../api'
 
 export default function Home() {
   const { setCurrentShop } = useShops()
   const navigate = useNavigate()
-  const masterShops = [
-    { shopId: 1, shopName: 'Fresh Mart', shopLocation: '123 Main St, Downtown' },
-    { shopId: 2, shopName: 'QuickStop', shopLocation: '456 Oak Ave, Midtown' },
-    { shopId: 3, shopName: 'Gourmet Groceries', shopLocation: '789 Pine Rd, Uptown' },
-    { shopId: 4, shopName: 'Corner Store', shopLocation: '321 Elm St, Eastside' },
-    { shopId: 5, shopName: 'Budget Bazaar', shopLocation: '654 Maple Dr, Westside' },
-    { shopId: 6, shopName: 'Local Market', shopLocation: '987 Cedar Ln, Suburbs' },
-    { shopId: 7, shopName: 'Premium Plus', shopLocation: '147 Birch Ct, Downtown' },
-    { shopId: 8, shopName: 'Value Shop', shopLocation: '258 Willow Way, Midtown' },
-    { shopId: 9, shopName: 'Express Mart', shopLocation: '369 Ash Blvd, Uptown' },
-    { shopId: 10, shopName: 'Super Save', shopLocation: '741 Spruce Pl, Harbor' },
-  ]
 
+  const [shops, setShops] = useState([])
   const [selectedShops, setSelectedShops] = useState([])
   const [query, setQuery] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    let mounted = true
+    setLoading(true)
+    fetchShops()
+      .then((data) => {
+        if (!mounted) return
+        // map external shape to app shape
+        const mapped = data.map((s) => ({ shopId: s.id, shopName: s.name, shopLocation: s.location || s.address || '' }))
+        setShops(mapped)
+      })
+      .catch((err) => {
+        console.error('Failed to load shops', err)
+        if (mounted) setError(err.message || 'Failed to load shops')
+      })
+      .finally(() => mounted && setLoading(false))
+    return () => {
+      mounted = false
+    }
+  }, [])
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
-    if (!q) return masterShops
-    return masterShops.filter(
-      (shop) => shop.shopName.toLowerCase().includes(q) || shop.shopLocation.toLowerCase().includes(q)
-    )
-  }, [query])
-
-
+    if (!q) return shops
+    return shops.filter((shop) => shop.shopName.toLowerCase().includes(q) || shop.shopLocation.toLowerCase().includes(q))
+  }, [query, shops])
 
   return (
     <div className="home-root">
@@ -48,7 +56,7 @@ export default function Home() {
               placeholder="Search shops..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              aria-label="Search items"
+              aria-label="Search shops"
             />
           </div>
         </section>
@@ -57,6 +65,10 @@ export default function Home() {
           <h3 style={{ gridColumn: '1 / -1', marginBottom: 10 }}>
             {query ? 'Search results' : 'Available shops'}
           </h3>
+
+          {loading && <div style={{ gridColumn: '1 / -1' }}>Loading shops…</div>}
+          {error && <div style={{ gridColumn: '1 / -1', color: 'red' }}>{error}</div>}
+
           {filtered.map((shop) => (
             <div
               key={shop.shopId}
