@@ -12,6 +12,8 @@ export default function Register() {
   const [lastName, setLastName] = useState('')
   const [phone, setPhone] = useState('')
   const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   // captcha
   const rand = () => Math.floor(Math.random() * 9) + 1
   const [captcha, setCaptcha] = useState({ a: rand(), b: rand() })
@@ -33,10 +35,14 @@ export default function Register() {
     if (!email.trim()) return setError('Please enter email')
     // minimal email check
     if (!/\S+@\S+\.\S+/.test(email)) return setError('Enter a valid email')
+    if (!password) return setError('Please enter password')
+    if (password.length < 6) return setError('Password must be at least 6 characters')
+    if (!confirmPassword) return setError('Please confirm your password')
+    if (password !== confirmPassword) return setError('Passwords do not match')
     if (!captchaValid) return setError('Captcha incorrect')
 
     // Save registration to redux store and navigate to OTP verification page (OTP handled separately)
-    const registration = { firstName, lastName, phone, email }
+    const registration = { firstName, lastName, phone, email, password }
     try { dispatch(registerUser(registration)) } catch (e) {}
     navigate('/verify-otp', { state: registration })
   }
@@ -60,10 +66,30 @@ export default function Register() {
 
         <label htmlFor="phone">Phone number</label>
         <input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+15551234567" />
-
+        
         <label htmlFor="email">Email</label>
-        <input id="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
-
+        <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
+        
+        <label htmlFor="password">Password</label>
+        <input 
+          id="password" 
+          type="password" 
+          value={password} 
+          onChange={(e) => setPassword(e.target.value)} 
+          placeholder="Enter password"
+          autoComplete="new-password"
+        />
+        
+        <label htmlFor="confirmPassword">Confirm Password</label>
+        <input 
+          id="confirmPassword" 
+          type="password" 
+          value={confirmPassword} 
+          onChange={(e) => setConfirmPassword(e.target.value)} 
+          placeholder="Confirm password"
+          autoComplete="new-password"
+        />
+        
         <div style={{height:8}} />
         <label htmlFor="captcha">Captcha: What is {captcha.a} + {captcha.b} ?</label>
         <div style={{display:'flex',gap:8,alignItems:'center',marginTop:6}}>
@@ -71,12 +97,11 @@ export default function Register() {
           <button type="button" onClick={() => { setCaptcha({ a: rand(), b: rand() }); setCaptchaInput(''); setError('') }} className="btn" style={{background:'#6b7280'}}>Refresh</button>
         </div>
         {captchaInput !== '' && !captchaValid && <div className="error" style={{marginTop:8}}>Captcha incorrect</div>}
-
         {error && <div className="error">{error}</div>}
 
         <div style={{height:8}} />
         <button type="submit" className="btn" disabled={!captchaValid}>Create account</button>
-
+        
         <p className="note">By creating an account you agree to the demo terms.</p>
       </form>
     </main>
